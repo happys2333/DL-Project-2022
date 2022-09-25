@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# idea tools
+.idea/
+.DS_Store
+
+# don't upload dataset
+.dataset/
