@@ -5,8 +5,7 @@ import locale
 
 class ECL:
     def __init__(self):
-        self.sep = ";"
-        self.df = pd.read_table(ECL_PATH, sep=self.sep)
+        self.df = pd.read_csv(ECL_PATH)
 
 
 class ETT:
