@@ -26,5 +26,41 @@ def ecl_show(pred_len=24):
     plt.show()
 
 
+def prophet_show(pre_len=24, train_len=96):
+    """
+    Simply univariate prediction via Prophet
+    :param pre_len: prediction length
+    :param train_len: training data length
+    :return:
+    """
+    try:
+        from prophet import Prophet
+    except Exception as e:
+        print("No Prophet library")
+        return
+
+    ecl = pd.read_csv(ECL_PATH)
+    mt320 = ecl.iloc[-(train_len + pre_len):, [0, -1]].rename(columns={"date": "ds", "MT_320": "y"})
+    # print(mt320.head(5))
+
+    m = Prophet()
+    train_data = mt320.iloc[:-pre_len, :]
+    m.fit(train_data)
+
+    future = m.make_future_dataframe(periods=pre_len, freq="H")  # shape: (len(train_data) + pre_len, 2)
+    # print(future.tail())
+
+    forecast = m.predict(future)  # ['ds', 'yhat', 'yhat_lower', 'yhat_upper']
+    # print(forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail())
+
+    pred = np.array(forecast.yhat[-pre_len:])
+    ground_truth = np.array(mt320.iloc[-pre_len:, 1])
+
+    plt.plot(pred, label="Pred")
+    plt.plot(ground_truth, label="GT")
+    plt.legend()
+    plt.show()
+
+
 if __name__ == "__main__":
-    ecl_show()
+    prophet_show()
