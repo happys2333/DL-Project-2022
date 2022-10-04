@@ -1,0 +1,3 @@
+[submodule "submodule/informer2020"]
+	path = submodule/informer2020
+	url = https://github.com/zhouhaoyi/Informer2020.git
