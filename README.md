@@ -21,3 +21,6 @@ python -u predict_informer.py --model informer --data ECL --attn prob --freq h -
 ```
 #### *Result* folder
 `metrics.npy`: [mae, mse, rmse, mape, msp]
+
+### Prophet
+Details: https://github.com/facebook/prophet
