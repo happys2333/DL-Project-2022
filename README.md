@@ -24,3 +24,11 @@ python -u predict_informer.py --model informer --data ECL --attn prob --freq h -
 
 ### Prophet
 Details: https://github.com/facebook/prophet
+
+### DeepAR
+With assistance of [`pytorch-forecasting`](https://github.com/jdb78/pytorch-forecasting) library and 
+its tutorial of [DeepAR](https://pytorch-forecasting.readthedocs.io/en/latest/tutorials/deepar.html)
+
+Need to install `pytorch-lightning` and `pytorch-forecasting`.
+
+Related code is `train/pred_DeepAR.ipynb`.However, the result isn't good.
