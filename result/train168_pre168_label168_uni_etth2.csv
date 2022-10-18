@@ -1,0 +1,5 @@
+model,mse,mae
+informer,0.278334,0.430104
+prophet,0.999320,0.709032
+autoformer,0,0
+deepar,0,0
