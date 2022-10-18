@@ -2,4 +2,4 @@ model,mse,mae
 informer,0.250150,0.376537
 prophet,1.427461,0.783714
 autoformer,0.243901,0.367090
-deepar,0,0
+reformer,0.202001,0.336203
