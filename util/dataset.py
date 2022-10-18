@@ -1,5 +1,5 @@
 import pandas as pd
-from param import ECL_PATH, WTH_PATH, KDD_PATH, ETT_PATH_DIR
+from .param import ECL_PATH, WTH_PATH, KDD_PATH, ETT_PATH_DIR
 import locale
 
 
