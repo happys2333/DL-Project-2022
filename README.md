@@ -47,6 +47,9 @@ python -u run.py \
   --c_out 321 \
   --des 'Exp' \
   --itr 1
+  
+  python -u run.py --is_training 1 --root_path ../../dataset --data_path ECL.csv --model_id ECL_168_168 --model Autoformer --data custom --features S --seq_len 168 --label_len 168 --pred_len 168 --e_layers 2 --d_layers 1 --factor 3 --enc_in 1 --dec_in 1 --c_out 1 --des 'Exp' --itr 1 --target MT_320 --batch_size 8
+
 ```
 
 As for prediction, up to now (2022.10.5) we haven't found a simple way to denormalize 
@@ -74,7 +77,7 @@ else:
         outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
     else:
         outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
-outputs = pred_data.inverse_transform(outputs.cpu().squeeze())
+outputs = pred_data.inverse_transform(outputs.cpu().squeeze(0))
 pred = outputs  # .squeeze()
 >>>>>> modified
 ```
