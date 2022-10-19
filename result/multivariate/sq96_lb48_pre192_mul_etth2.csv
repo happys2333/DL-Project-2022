@@ -1,0 +1,4 @@
+model,mse,mae
+informer,6.336017,2.113762
+autoformer,0.450710,0.447220
+reformer,,
