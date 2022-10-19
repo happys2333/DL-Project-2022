@@ -1,36 +1,66 @@
-import matplotlib as mt
 import matplotlib.pyplot as plt
 import numpy as np
-import os
-
+from typing import Union
 import pandas as pd
 
-from param import ECL_PATH, ECL_PRED_INFORMER_PATH, ECL_PRED_AUTOFORMER_PATH
+from util.dataset import *
+from util.param import *
 
 
-def ecl_show(pred_len=24, model="autoformer"):
+def plot_comparison(datasets: Union[list, tuple], models: Union[list, tuple], pred_len: int, features="S", save=False):
+    for dataset in datasets:
+        ground_truth = None
+        for model in models:
+            gt, pre = plot_pred(pred_len, dataset, model, features=features, show=False)
+            assert gt is not None, pre is not None
+            if ground_truth is None:
+                ground_truth = gt
+                plt.plot(gt, label="Ground Truth")
+            plt.plot(pre, label="%s" % model)
+
+        title_name = "Prediction with length %d on %s" % (pred_len, dataset)
+        plt.title(title_name)
+        plt.legend()
+        plt.show()
+        if save:
+            plt.imsave(title_name)
+
+
+def plot_pred(pred_len=24, dataset="ETTh1", model="informer", features="S", show=True):
     """
     Shows comparison between prediction of informer and ground truth of ECL's last sequence
     Firstly use ckpt of informer to predict a sequence, then use the prediction by setting 'ECL_RESULT_PATH'
     :return:
     """
-    if model == "informer":
-        result_path = ECL_PRED_INFORMER_PATH
-    elif model == "autoformer":
-        result_path = ECL_PRED_AUTOFORMER_PATH
+    if dataset == "ETTh1":
+        data = ETT().df_h1
+        result_path = ETTH1_PRED[features][model]
+    elif dataset == "ECL":
+        data = ECL().df
+        result_path = ECL_PRED[features][model]
+    elif dataset == "WTH":
+        data = WTH().df
+        result_path = WTH_PRED[features][model]
     else:
-        result_path = ECL_PRED_INFORMER_PATH
+        print("Dataset not found")
+        return None, None
+    if result_path is None:
+        return None, None
 
-    ecl = pd.read_csv(ECL_PATH)
-
-    ground_truth = np.array(ecl.MT_320.iloc[-pred_len:])
+    ground_truth = np.array(data.iloc[-pred_len:, -1])
     pred = np.load(os.path.join(result_path, "real_prediction.npy"))
-    target_pred = pred.squeeze()[:, -1]
+    if features == "M":
+        target_pred = pred.squeeze()[:, -1]
+    else:
+        target_pred = pred.squeeze()[:]
 
-    plt.plot(target_pred, label="Pred")
-    plt.plot(ground_truth, label="GT")
-    plt.legend()
-    plt.show()
+    if show:
+        plt.plot(target_pred, label="Pred")
+        plt.plot(ground_truth, label="GT")
+        plt.legend()
+        plt.show()
+
+    return ground_truth, target_pred
 
 
 def prophet_show(pre_len=24, train_len=96):
@@ -70,5 +100,5 @@ def prophet_show(pre_len=24, train_len=96):
 
 
 if __name__ == "__main__":
-    ecl_show()
-    # prophet_show()
+    # plot_pred(192, "ETTh1", "informer", features="M")
+    plot_comparison(datasets=["ECL"], models=["informer", "autoformer","reformer"], pred_len=168)
