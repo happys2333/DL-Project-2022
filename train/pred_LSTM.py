@@ -8,15 +8,17 @@ from util.dataset import *
 import tqdm
 import os
 import matplotlib.pyplot as plt
+import argparse
 
 
 class LSTMDataSet(Dataset):
-    def __init__(self, dataset_name, sequence_len, pred_len, feature_type="M"):
+    def __init__(self, dataset_name, sequence_len, pred_len, feature_type="M", mode="train"):
         self.pred_len = pred_len
         self.seq_len = sequence_len
         self.total_len = self.pred_len + self.seq_len
         self.feature_type = -1 if feature_type == "S" else 0
         self.scaler = StandardScaler()
+        self.mode = mode
 
         self.dataset = self.__get_dataset(dataset_name)
 
@@ -33,18 +35,27 @@ class LSTMDataSet(Dataset):
         else:
             raise "No such dataset"
 
+        data = data[:, self.feature_type:]
         # scale
         self.scaler.fit(data)
         data = self.scaler.transform(data)
         data = torch.Tensor(data).to(torch.float32)
 
         N, D = data.shape
-        dataset_len = N - self.total_len + 1
+        train_N = N
+        if self.mode == "train":
+            train_N = int(N * 0.6)
+            data = data[:train_N, :]
+        elif self.mode == "test":
+            train_N = N - int(N * 0.6)
+            data = data[-train_N:, :]
+
+        dataset_len = train_N - self.total_len + 1
         assert dataset_len > 0
 
         dataset = []
         for i in range(dataset_len):
-            dataset.append(data[i:i + self.total_len, self.feature_type:])
+            dataset.append(data[i:i + self.total_len, :])
         return dataset
 
     def __getitem__(self, item):
@@ -68,22 +79,15 @@ class LSTM(nn.Module):
         return x
 
 
-def train():
-    # dataset config
-    dataset_name = "ETT"
-    # network config
-    batch = 16
-    feature_type = "S"
-    input_size = 1
-    hidden_size = 512
-    output_size = 1
-    pre_len = 168
-    seq_len = 3 * pre_len // 2
+def train(dataset_name, input_size, hidden_size, output_size, pre_len, batch, epochs, early_stop_patience, feature_type,
+          seq_len=None):
+    if seq_len is None:
+        seq_len = 3 * pre_len // 2
     assert seq_len >= pre_len
 
     # create folder
-    ckpt_name = "%s_is%d_hs%d_os%d_sl%d_pl%d" % (
-        dataset_name, input_size, hidden_size, output_size, seq_len, pre_len)
+    ckpt_name = "%s_%s_is%d_hs%d_os%d_sl%d_pl%d" % (
+        dataset_name, feature_type, input_size, hidden_size, output_size, seq_len, pre_len)
     ckpt_save_path = os.path.join(os.path.split(__file__)[0], "../ckpts/LSTM/%s" % ckpt_name)
     if not os.path.exists(ckpt_save_path):
         os.makedirs(ckpt_save_path)
@@ -97,6 +101,7 @@ def train():
     train_len = int(len(dataset) * 0.7)
     valid_len = len(dataset) - train_len
     train_data, valid_data = random_split(dataset, [train_len, valid_len])
+    print(train_data)
     train_dataloader, valid_dataloader = DataLoader(train_data, batch), DataLoader(valid_data, batch)
 
     # build model and optimizer
@@ -104,8 +109,6 @@ def train():
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     criterion = nn.MSELoss().to(device)
 
-    epochs = 100
-    early_stop_patience = 3
     early_stop_now = 0
     best_loss = torch.inf
     print("Training number: %d, validation number: %d", train_len, valid_len)
@@ -151,24 +154,17 @@ def train():
                 break
 
 
-def pred_test(index=-1):
-    # dataset config
-    dataset_name = "ECL"
-    # network config
-    batch = 16
-    feature_type = "S"
-    input_size = 1
-    hidden_size = 512
-    output_size = 1
-    pre_len = 168
-    seq_len = 3 * pre_len // 2
+def pred_test(dataset_name, input_size, hidden_size, output_size, pre_len, feature_type, seq_len=None, index=-1):
+    if seq_len is None:
+        seq_len = 3 * pre_len // 2
     assert seq_len >= pre_len
 
-    dataset = LSTMDataSet(dataset_name, sequence_len=seq_len, pred_len=pre_len, feature_type=feature_type)
+    dataset = LSTMDataSet(dataset_name, sequence_len=seq_len, pred_len=pre_len, feature_type=feature_type,
+                          mode="pred_test")
 
     # find ckpt
-    ckpt_name = "%s_is%d_hs%d_os%d_sl%d_pl%d" % (
-        dataset_name, input_size, hidden_size, output_size, seq_len, pre_len)
+    ckpt_name = "%s_%s_is%d_hs%d_os%d_sl%d_pl%d" % (
+        dataset_name, feature_type, input_size, hidden_size, output_size, seq_len, pre_len)
     ckpt = os.path.join(os.path.split(__file__)[0], "../ckpts/LSTM/%s" % ckpt_name, ckpt_name + ".pt")
 
     # build model
@@ -178,12 +174,59 @@ def pred_test(index=-1):
 
     # predict
     source, target = dataset[index][0].unsqueeze(0).to(device), dataset[index][1].unsqueeze(0).to(device)
-    pred = model(source)[:, -pre_len:, -1:]
+    pred = model(source)[:, -pre_len:, :].squeeze(0).detach()
+    gt = target[:, :, :].squeeze(0).detach()
 
-    plt.plot(pred.squeeze().detach(), label="pred")
-    plt.plot(target.squeeze().detach(), label="gt")
+    pred = dataset.scaler.inverse_transform(pred)[..., -1:]
+    gt = dataset.scaler.inverse_transform(gt)[..., -1:]
+
+    plt.plot(pred, label="pred")
+    plt.plot(gt, label="gt")
     plt.legend()
     plt.show()
+
+
+def test(dataset_name, input_size, hidden_size, output_size, pre_len, epochs, feature_type,
+         seq_len=None):
+    dataset = LSTMDataSet(dataset_name, sequence_len=seq_len, pred_len=pre_len, feature_type=feature_type,
+                          mode="test")
+
+    # find ckpt
+    ckpt_name = "%s_%s_is%d_hs%d_os%d_sl%d_pl%d" % (
+        dataset_name, feature_type, input_size, hidden_size, output_size, seq_len, pre_len)
+    ckpt = os.path.join(os.path.split(__file__)[0], "../ckpts/LSTM/%s" % ckpt_name, ckpt_name + ".pt")
+
+    # hardware config
+    device = "cpu"
+    if torch.cuda.is_available():
+        device = "cuda:%d" % 0
+
+    # build model
+    model = LSTM(input_size=input_size, hidden_size=hidden_size, output_size=output_size).to(device)
+    model.load_state_dict(torch.load(ckpt))
+
+    criterion_mse = nn.MSELoss().to(device)
+    criterion_mae = nn.L1Loss(reduction="mean")
+
+    dataset_len = len(dataset)
+    mse = mae = 0
+    print("Begin test %d data" % dataset_len)
+    bar = tqdm.tqdm(total=dataset_len)
+    for i in range(dataset_len):
+        source, target = dataset[i]
+        source = source.unsqueeze(0).to(device)
+        target = target.unsqueeze(0).to(device)
+
+        pred = model(source)[:, -pre_len:, :]
+        loss_mse = criterion_mse(pred, target)
+        loss_mae = criterion_mae(pred, target)
+        mse += float(loss_mse)
+        mae += float(loss_mae)
+        bar.update()
+
+    mse /= dataset_len
+    mae /= dataset_len
+    print("mse： %f, mae: %f" % (mse, mae))
 
 
 def dataset_test():
@@ -192,6 +235,30 @@ def dataset_test():
     print(len(dataset[0][0]), len(dataset[0][1]))
 
 
-if __name__ == "__main__":
-    train()
-    # pred_test()
+parser = argparse.ArgumentParser()
+parser.add_argument("--dataset", type=str, default='ECL', help='dataset, can be [ECL, ETT, WTH]')
+
+parser.add_argument("--ipt_size", type=int, default=1, help='input size')
+parser.add_argument("--hid_size", type=int, default=512)
+parser.add_argument("--opt_size", type=int, default=1)
+parser.add_argument("--pre_len", type=int, default=168)
+parser.add_argument("--seq_len", type=int, default=168)
+parser.add_argument("--batch", type=int, default=16)
+parser.add_argument("--epochs", type=int, default=100)
+parser.add_argument("--patience", type=int, default=3)
+parser.add_argument("--feature_type", type=str, default="S")
+
+parser.add_argument("--mode", type=str, default="train", help="train, test or pred_test")
+parser.add_argument("--pred_idx", type=int, default=-1, help="train or test")
+
+args = parser.parse_args()
+if args.mode == "train":
+    train(dataset_name=args.dataset, input_size=args.ipt_size, hidden_size=args.hid_size, output_size=args.opt_size,
+          pre_len=args.pre_len, batch=args.batch, feature_type=args.feature_type, epochs=args.epochs,
+          early_stop_patience=args.patience, seq_len=args.seq_len)
+elif args.mode == "pred_test":
+    pred_test(dataset_name=args.dataset, input_size=args.ipt_size, hidden_size=args.hid_size, output_size=args.opt_size,
+              pre_len=args.pre_len, feature_type=args.feature_type, seq_len=args.seq_len, index=args.pred_idx)
+else:
+    test(dataset_name=args.dataset, input_size=args.ipt_size, hidden_size=args.hid_size, output_size=args.opt_size,
+         pre_len=args.pre_len, feature_type=args.feature_type, epochs=args.epochs, seq_len=args.seq_len)
