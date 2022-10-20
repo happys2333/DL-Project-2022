@@ -54,6 +54,7 @@ python -u run.py \
 
 As for prediction, up to now (2022.10.5) we haven't found a simple way to denormalize 
 the output, so we modify original code like following:
+
 ```python
 # data_provider/data_loader.py, make inverse True
 class Dataset_Pred(Dataset):
@@ -61,25 +62,24 @@ class Dataset_Pred(Dataset):
                  features='S', data_path='ETTh1.csv',
                  target='OT', scale=True, inverse=True, timeenc=0, freq='15min', cols=None):
 
-
 # exp/exp_main.py, in predict method (about 305 line), add inverse_transform method
-<<<<<< origin
+<< << << origin
 else:
-    if self.args.output_attention:
-        outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
-    else:
-        outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
+if self.parser.output_attention:
+    outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
+else:
+    outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
 pred = outputs.detach().cpu().numpy()  # .squeeze()
 preds.append(pred)
-============
+== == == == == ==
 else:
-    if self.args.output_attention:
-        outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
-    else:
-        outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
+if self.parser.output_attention:
+    outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
+else:
+    outputs = self.model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
 outputs = pred_data.inverse_transform(outputs.cpu().squeeze(0))
 pred = outputs  # .squeeze()
->>>>>> modified
+>> >> >> modified
 ```
 Then use `pred_autoformer.py` whose usage please refer to *informer*, shell:
 ```shell
@@ -97,6 +97,7 @@ Need to install `pytorch-lightning` and `pytorch-forecasting`.
 
 Related code is `train/pred_DeepAR.ipynb`.However, the result isn't good.
 
-
+### LSTM
+We just use `nn.LSTM` in `pytorch`. Out of our expectation, its performance isn't bad.
 ## Dataset
 ETT, Weather, ECL,  [Traffic](https://archive.ics.uci.edu/ml/datasets/PEMS-SF)
