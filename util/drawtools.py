@@ -63,42 +63,41 @@ def plot_pred(pred_len=24, dataset="ETTh1", model="informer", features="S", show
     return ground_truth, target_pred
 
 
-def prophet_show(pre_len=24, train_len=96):
-    """
-    Simply univariate prediction via Prophet
-    :param pre_len: prediction length
-    :param train_len: training data length
-    :return:
-    """
-    try:
-        from prophet import Prophet
-    except Exception as e:
-        print("No Prophet library")
-        return
+def draw_result_bar():
+    result_path = "../result/multivariate/sq96_lb48_pre192_mul_wth.csv"
+    result = pd.read_csv(result_path)
 
-    ecl = pd.read_csv(ECL_PATH)
-    mt320 = ecl.iloc[-(train_len + pre_len):, [0, -1]].rename(columns={"date": "ds", "MT_320": "y"})
-    # print(mt320.head(5))
+    size = 2
 
-    m = Prophet()
-    train_data = mt320.iloc[:-pre_len, :]
-    m.fit(train_data)
+    x = np.arange(size)
 
-    future = m.make_future_dataframe(periods=pre_len, freq="H")  # shape: (len(train_data) + pre_len, 2)
-    # print(future.tail())
+    # 有a/b两种类型的数据，n设置为2
+    total_width, n = 0.6, 3
+    # 每种类型的柱状图宽度
+    width = total_width / n
 
-    forecast = m.predict(future)  # ['ds', 'yhat', 'yhat_lower', 'yhat_upper']
-    # print(forecast[['ds', 'yhat', 'yhat_lower', 'yhat_upper']].tail())
-
-    pred = np.array(forecast.yhat[-pre_len:])
-    ground_truth = np.array(mt320.iloc[-pre_len:, 1])
-
-    plt.plot(pred, label="Pred")
-    plt.plot(ground_truth, label="GT")
-    plt.legend()
+    data = [[0.542752, 0.525745],
+            [0.587715, 0.559554],
+            [0.745868, 0.622514]]
+    colors = ["#4E79A7", "#A0CBE8", "#F28E2B", "#FFBE7D", "#59A14F", "#8CD17D", "#B6992D", "#F1CE63", "#499894",
+              "#86BCB6", "#E15759", "#E19D9A"]
+    # 重新设置x轴的坐标
+    x = x - (total_width - width) / n
+    # 画柱状图
+    plt.bar(x, data[0], width=width, label="Informer", color=colors[0])
+    plt.bar(x + width, data[1], width=width, label="Autoformer", color=colors[1])
+    plt.bar(x + 2 * width, data[2], width=width, label="LSTM", color=colors[2])
+    plt.xticks(np.arange(size), ("MSE", "MAE"))
+    # 显示图例
+    # plt.figure(dpi=300,figsize=(24,24))
+    plt.legend(loc='lower right', prop={"family": "Times New Roman"})
+    plt.xlabel("Metric Comparison", fontname="Times New Roman")
+    plt.ylabel("Value of MSE or MAE", fontname="Times New Roman")
+    # 显示柱状图
     plt.show()
 
 
 if __name__ == "__main__":
-    # plot_pred(192, "ETTh1", "informer", features="M")
-    plot_comparison(datasets=["ECL"], models=["informer", "autoformer","reformer"], pred_len=168)
+    # plot_pred(168, "ETTh1", "informer", features="S")
+    draw_result_bar()
+    # plot_comparison(datasets=["ECL"], models=["informer", "autoformer","reformer"], pred_len=168)
