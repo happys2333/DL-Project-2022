@@ -1,4 +1,4 @@
 model,mse,mae
 informer,1.130280,0.875960
 autoformer,0.535738,0.487452
-reformer,,
+lstm,1.266324,0.840875
