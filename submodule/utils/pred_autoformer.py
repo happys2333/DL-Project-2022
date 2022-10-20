@@ -1,3 +1,6 @@
+"""
+Usage of this script is the same as predict_informer.py
+"""
 import argparse
 import os
 import torch
