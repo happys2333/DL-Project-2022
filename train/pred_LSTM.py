@@ -9,6 +9,7 @@ import tqdm
 import os
 import matplotlib.pyplot as plt
 import argparse
+import numpy as np
 
 
 class LSTMDataSet(Dataset):
@@ -155,7 +156,7 @@ def train(dataset_name, input_size, hidden_size, output_size, pre_len, batch, ep
 
 
 def pred_test(dataset_name, input_size, hidden_size, output_size, pre_len, feature_type, seq_len=None, index=-1,
-              save_fig=False):
+              save_fig=False, save_data=False):
     if seq_len is None:
         seq_len = 3 * pre_len // 2
     assert seq_len >= pre_len
@@ -178,8 +179,14 @@ def pred_test(dataset_name, input_size, hidden_size, output_size, pre_len, featu
     pred = model(source)[:, -pre_len:, :].squeeze(0).detach()
     gt = target[:, :, :].squeeze(0).detach()
 
-    pred = dataset.scaler.inverse_transform(pred)[..., -1:]
-    gt = dataset.scaler.inverse_transform(gt)[..., -1:]
+    inverse_pred = dataset.scaler.inverse_transform(pred)
+    inverse_gt = dataset.scaler.inverse_transform(gt)
+    if save_data:
+        np.save("real_prediction.npy", inverse_pred)
+        np.save("true.npy", inverse_gt)
+
+    pred = inverse_pred[..., -1:]
+    gt = inverse_gt[..., -1:]
 
     plt.figure(figsize=(15, 5))
     plt.plot(pred, label="pred")
@@ -255,6 +262,7 @@ parser.add_argument("--feature_type", type=str, default="S")
 parser.add_argument("--mode", type=str, default="train", help="train, test or pred_test")
 parser.add_argument("--pred_idx", type=int, default=-1, help="train or test")
 parser.add_argument("--save_fig", action="store_true", help="for pred_test to save graph")
+parser.add_argument("--save_data", action="store_true", help="for pred_test to save pred and true")
 
 args = parser.parse_args()
 if args.mode == "train":
@@ -264,7 +272,7 @@ if args.mode == "train":
 elif args.mode == "pred_test":
     pred_test(dataset_name=args.dataset, input_size=args.ipt_size, hidden_size=args.hid_size, output_size=args.opt_size,
               pre_len=args.pre_len, feature_type=args.feature_type, seq_len=args.seq_len, index=args.pred_idx,
-              save_fig=args.save_fig)
+              save_fig=args.save_fig, save_data=args.save_data)
 else:
     test(dataset_name=args.dataset, input_size=args.ipt_size, hidden_size=args.hid_size, output_size=args.opt_size,
          pre_len=args.pre_len, feature_type=args.feature_type, epochs=args.epochs, seq_len=args.seq_len)
