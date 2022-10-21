@@ -18,12 +18,14 @@ def plot_comparison(datasets: Union[list, tuple], models: Union[list, tuple], pr
                 plt.plot(gt, label="Ground Truth")
             plt.plot(pre, label="%s" % model)
 
-        title_name = "Prediction with length %d on %s" % (pred_len, dataset)
+        feature_type = "Multivariate" if features == "M" else "Univariate"
+        title_name = "%s prediction with length %d on %s" % (feature_type, pred_len, dataset)
         plt.title(title_name)
         plt.legend()
-        plt.show()
         if save:
-            plt.imsave(title_name)
+            plt.savefig(title_name)
+
+        plt.show()
 
 
 def plot_pred(pred_len=24, dataset="ETTh1", model="informer", features="S", show=True):
@@ -143,6 +145,7 @@ def draw_result_bars():
 
 
 if __name__ == "__main__":
-    # plot_pred(168, "ETTh1", "informer", features="S")
-    draw_result_bars()
-    # plot_comparison(datasets=["ECL"], models=["informer", "autoformer","reformer"], pred_len=168)
+    # plot_pred(168, "ECL", "LSTM", features="S")
+    plot_comparison(datasets=["ECL", "ETTh1", "WTH"], models=["informer", "autoformer", "LSTM"], pred_len=168,
+                    features="S", save=True)
+    # draw_result_bars()

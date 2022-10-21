@@ -23,13 +23,14 @@ ECL_PRED = {
             "../submodule/autoformer/results/ECL_168_168_Autoformer_custom_ftS_sl168_ll168_pl168_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0"),
         "reformer": path_parse(
             "../submodule/autoformer/results/ECL_336_168_Reformer_custom_ftS_sl168_ll168_pl168_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0"),
-        "prophet": None
+        "LSTM": path_parse("../result/output/LSTM/ECL_S_is1_hs512_os1_sl168_pl168")
     },
     "M": {
         "informer": path_parse(
             "../submodule/informer2020/results/informer_ECL_ftM_sl96_ll48_pl192_dm512_nh8_el2_dl1_df2048_atprob_fc5_ebtimeF_dtTrue_mxTrue_Exp_0"),
         "autoformer": path_parse(
-            "../submodule/autoformer/results/ECL_96_192_Autoformer_custom_ftM_sl96_ll48_pl192_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0")
+            "../submodule/autoformer/results/ECL_96_192_Autoformer_custom_ftM_sl96_ll48_pl192_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0"),
+        "LSTM": path_parse("../result/output/LSTM/ECL_M_is321_hs512_os321_sl192_pl192")
     }
 
 }
@@ -42,13 +43,14 @@ WTH_PRED = {
             "../submodule/autoformer/results/WTH_168_168_Autoformer_custom_ftS_sl168_ll168_pl168_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0"),
         "reformer": path_parse(
             "../submodule/autoformer/results/WTH_336_168_Reformer_custom_ftS_sl168_ll168_pl168_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0"),
-        "prophet": None
+        "LSTM": path_parse("../result/output/LSTM/WTH_S_is1_hs512_os1_sl168_pl168")
     },
     "M": {
         "informer": path_parse(
             "../submodule/informer2020/results/informer_WTH_ftM_sl96_ll48_pl192_dm512_nh8_el2_dl1_df2048_atprob_fc5_ebtimeF_dtTrue_mxTrue_Exp_0"),
         "autoformer": path_parse(
-            "../submodule/autoformer/results/WTH_96_192_Autoformer_custom_ftM_sl96_ll48_pl192_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0")
+            "../submodule/autoformer/results/WTH_96_192_Autoformer_custom_ftM_sl96_ll48_pl192_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0"),
+        "LSTM": path_parse("../result/output/LSTM/WTH_M_is12_hs512_os12_sl192_pl192")
     }
 
 }
@@ -61,13 +63,14 @@ ETTH1_PRED = {
             "../submodule/autoformer/results/ETTh1_168_168_Autoformer_ETTh1_ftS_sl168_ll168_pl168_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0"),
         "reformer": path_parse(
             "../submodule/autoformer/results/ETTh1_336_168_Reformer_ETTh1_ftS_sl336_ll168_pl168_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0"),
-        "prophet": None
+        "LSTM": path_parse("../result/output/LSTM/ETT_S_is1_hs512_os1_sl168_pl168")
     },
     "M": {
         "informer": path_parse(
             "../submodule/informer2020/results/informer_ETTh1_ftM_sl96_ll48_pl192_dm512_nh8_el2_dl1_df2048_atprob_fc5_ebtimeF_dtTrue_mxTrue_Exp_0"),
         "autoformer": path_parse(
-            "../submodule/autoformer/results/ETTh1_96_192_Autoformer_ETTh1_ftM_sl96_ll48_pl192_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0")
+            "../submodule/autoformer/results/ETTh1_96_192_Autoformer_ETTh1_ftM_sl96_ll48_pl192_dm512_nh8_el2_dl1_df2048_fc3_ebtimeF_dtTrue_Exp_0"),
+        "LSTM": path_parse("../result/output/LSTM/ETT_M_is7_hs512_os7_sl192_pl192")
     }
 
 }
