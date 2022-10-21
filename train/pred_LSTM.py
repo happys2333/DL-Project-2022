@@ -154,7 +154,8 @@ def train(dataset_name, input_size, hidden_size, output_size, pre_len, batch, ep
                 break
 
 
-def pred_test(dataset_name, input_size, hidden_size, output_size, pre_len, feature_type, seq_len=None, index=-1):
+def pred_test(dataset_name, input_size, hidden_size, output_size, pre_len, feature_type, seq_len=None, index=-1,
+              save_fig=False):
     if seq_len is None:
         seq_len = 3 * pre_len // 2
     assert seq_len >= pre_len
@@ -180,9 +181,12 @@ def pred_test(dataset_name, input_size, hidden_size, output_size, pre_len, featu
     pred = dataset.scaler.inverse_transform(pred)[..., -1:]
     gt = dataset.scaler.inverse_transform(gt)[..., -1:]
 
+    plt.figure(figsize=(15, 5))
     plt.plot(pred, label="pred")
     plt.plot(gt, label="gt")
     plt.legend()
+    if save_fig:
+        plt.savefig("save.png")
     plt.show()
 
 
@@ -250,6 +254,7 @@ parser.add_argument("--feature_type", type=str, default="S")
 
 parser.add_argument("--mode", type=str, default="train", help="train, test or pred_test")
 parser.add_argument("--pred_idx", type=int, default=-1, help="train or test")
+parser.add_argument("--save_fig", action="store_true", help="for pred_test to save graph")
 
 args = parser.parse_args()
 if args.mode == "train":
@@ -258,7 +263,8 @@ if args.mode == "train":
           early_stop_patience=args.patience, seq_len=args.seq_len)
 elif args.mode == "pred_test":
     pred_test(dataset_name=args.dataset, input_size=args.ipt_size, hidden_size=args.hid_size, output_size=args.opt_size,
-              pre_len=args.pre_len, feature_type=args.feature_type, seq_len=args.seq_len, index=args.pred_idx)
+              pre_len=args.pre_len, feature_type=args.feature_type, seq_len=args.seq_len, index=args.pred_idx,
+              save_fig=args.save_fig)
 else:
     test(dataset_name=args.dataset, input_size=args.ipt_size, hidden_size=args.hid_size, output_size=args.opt_size,
          pre_len=args.pre_len, feature_type=args.feature_type, epochs=args.epochs, seq_len=args.seq_len)
