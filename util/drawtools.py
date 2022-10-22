@@ -7,11 +7,16 @@ from util.dataset import *
 from util.param import *
 
 
-def plot_comparison(datasets: Union[list, tuple], models: Union[list, tuple], pred_len: int, features="S", save=False):
+def plot_comparison(datasets: Union[list, tuple], models: Union[list, tuple], pred_len: int, features="S", save=False,
+                    fig_size=(15, 5), pred_idx=168):
+    """
+    pred_idx means it will predict from [-pred_idx:-pred_idx+pred_len], which is different from
+    """
+    plt.figure(figsize=fig_size)
     for dataset in datasets:
         ground_truth = None
         for model in models:
-            gt, pre = plot_pred(pred_len, dataset, model, features=features, show=False)
+            gt, pre = plot_pred(pred_idx, pred_len, dataset, model, features=features, show=False)
             assert gt is not None, pre is not None
             if ground_truth is None:
                 ground_truth = gt
@@ -28,7 +33,7 @@ def plot_comparison(datasets: Union[list, tuple], models: Union[list, tuple], pr
         plt.show()
 
 
-def plot_pred(pred_len=24, dataset="ETTh1", model="informer", features="S", show=True):
+def plot_pred(pred_idx=168, pred_len=24, dataset="ETTh1", model="informer", features="S", show=True, save=False):
     """
     Shows comparison between prediction of informer and ground truth of ECL's last sequence
     Firstly use ckpt of informer to predict a sequence, then use the prediction by setting 'ECL_RESULT_PATH'
@@ -49,18 +54,27 @@ def plot_pred(pred_len=24, dataset="ETTh1", model="informer", features="S", show
     if result_path is None:
         return None, None
 
-    ground_truth = np.array(data.iloc[-pred_len:, -1])
+    end_point = (-pred_idx + pred_len) if (-pred_idx + pred_len) < 0 else None
+    ground_truth = np.array(data.iloc[-pred_idx:end_point, -1])
     pred = np.load(os.path.join(result_path, "real_prediction.npy"))
     if features == "M":
         target_pred = pred.squeeze()[:, -1]
     else:
         target_pred = pred.squeeze()[:]
 
-    if show:
+    if show or save:
+        plt.figure(figsize=(15, 5))
         plt.plot(target_pred, label="Pred")
         plt.plot(ground_truth, label="GT")
+        title = "%s prediction of %s on %s dataset with %d length" % (features, model, dataset, pred_len)
+        plt.title(title)
+        plt.xlabel("Time (h)")
+        plt.ylabel("Value")
         plt.legend()
-        plt.show()
+        if save:
+            plt.savefig(title+" (pre_idx:%d)" % pred_idx)
+        if show:
+            plt.show()
 
     return ground_truth, target_pred
 
@@ -145,7 +159,7 @@ def draw_result_bars():
 
 
 if __name__ == "__main__":
-    # plot_pred(168, "ECL", "LSTM", features="S")
-    plot_comparison(datasets=["ECL", "ETTh1", "WTH"], models=["informer", "autoformer", "LSTM"], pred_len=168,
-                    features="S", save=True)
+    plot_pred(1368, 168, "ECL", "LSTM", features="S", save=True)
+    # plot_comparison(datasets=["ECL"], models=["informer", "autoformer", "LSTM"], pred_idx=500, pred_len=192,
+    #                 features="M", save=True)
     # draw_result_bars()

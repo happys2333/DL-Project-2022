@@ -260,7 +260,8 @@ parser.add_argument("--patience", type=int, default=3)
 parser.add_argument("--feature_type", type=str, default="S")
 
 parser.add_argument("--mode", type=str, default="train", help="train, test or pred_test")
-parser.add_argument("--pred_idx", type=int, default=-1, help="train or test")
+parser.add_argument("--pred_idx", type=int, default=-1,
+                    help="pred which group of data, a group is from [i:i+seq_len+pred_len], pred_idx==-1 means [-seq_len-pred_len:]")
 parser.add_argument("--save_fig", action="store_true", help="for pred_test to save graph")
 parser.add_argument("--save_data", action="store_true", help="for pred_test to save pred and true")
 
