@@ -118,6 +118,7 @@ def train(dataset_name, input_size, hidden_size, output_size, pre_len, batch, ep
         bar = tqdm.tqdm(total=train_len // batch)
         for i, data in enumerate(train_dataloader):
             source, target = data[0].to(device), data[1].to(device)
+            print(target.shape)
             pred = model(source)[:, -pre_len:, :]
 
             optimizer.zero_grad()
@@ -246,33 +247,34 @@ def dataset_test():
     print(len(dataset[0][0]), len(dataset[0][1]))
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--dataset", type=str, default='ECL', help='dataset, can be [ECL, ETT, WTH]')
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dataset", type=str, default='ECL', help='dataset, can be [ECL, ETT, WTH]')
 
-parser.add_argument("--ipt_size", type=int, default=1, help='input size')
-parser.add_argument("--hid_size", type=int, default=512)
-parser.add_argument("--opt_size", type=int, default=1)
-parser.add_argument("--pre_len", type=int, default=168)
-parser.add_argument("--seq_len", type=int, default=168)
-parser.add_argument("--batch", type=int, default=16)
-parser.add_argument("--epochs", type=int, default=100)
-parser.add_argument("--patience", type=int, default=3)
-parser.add_argument("--feature_type", type=str, default="S")
+    parser.add_argument("--ipt_size", type=int, default=1, help='input size')
+    parser.add_argument("--hid_size", type=int, default=512)
+    parser.add_argument("--opt_size", type=int, default=1)
+    parser.add_argument("--pre_len", type=int, default=168)
+    parser.add_argument("--seq_len", type=int, default=168)
+    parser.add_argument("--batch", type=int, default=16)
+    parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--patience", type=int, default=3)
+    parser.add_argument("--feature_type", type=str, default="S")
 
-parser.add_argument("--mode", type=str, default="train", help="train, test or pred_test")
-parser.add_argument("--pred_idx", type=int, default=-1, help="train or test")
-parser.add_argument("--save_fig", action="store_true", help="for pred_test to save graph")
-parser.add_argument("--save_data", action="store_true", help="for pred_test to save pred and true")
+    parser.add_argument("--mode", type=str, default="train", help="train, test or pred_test")
+    parser.add_argument("--pred_idx", type=int, default=-1, help="train or test")
+    parser.add_argument("--save_fig", action="store_true", help="for pred_test to save graph")
+    parser.add_argument("--save_data", action="store_true", help="for pred_test to save pred and true")
 
-args = parser.parse_args()
-if args.mode == "train":
-    train(dataset_name=args.dataset, input_size=args.ipt_size, hidden_size=args.hid_size, output_size=args.opt_size,
-          pre_len=args.pre_len, batch=args.batch, feature_type=args.feature_type, epochs=args.epochs,
-          early_stop_patience=args.patience, seq_len=args.seq_len)
-elif args.mode == "pred_test":
-    pred_test(dataset_name=args.dataset, input_size=args.ipt_size, hidden_size=args.hid_size, output_size=args.opt_size,
-              pre_len=args.pre_len, feature_type=args.feature_type, seq_len=args.seq_len, index=args.pred_idx,
-              save_fig=args.save_fig, save_data=args.save_data)
-else:
-    test(dataset_name=args.dataset, input_size=args.ipt_size, hidden_size=args.hid_size, output_size=args.opt_size,
-         pre_len=args.pre_len, feature_type=args.feature_type, epochs=args.epochs, seq_len=args.seq_len)
+    args = parser.parse_args()
+    if args.mode == "train":
+        train(dataset_name=args.dataset, input_size=args.ipt_size, hidden_size=args.hid_size, output_size=args.opt_size,
+              pre_len=args.pre_len, batch=args.batch, feature_type=args.feature_type, epochs=args.epochs,
+              early_stop_patience=args.patience, seq_len=args.seq_len)
+    elif args.mode == "pred_test":
+        pred_test(dataset_name=args.dataset, input_size=args.ipt_size, hidden_size=args.hid_size, output_size=args.opt_size,
+                  pre_len=args.pre_len, feature_type=args.feature_type, seq_len=args.seq_len, index=args.pred_idx,
+                  save_fig=args.save_fig, save_data=args.save_data)
+    else:
+        test(dataset_name=args.dataset, input_size=args.ipt_size, hidden_size=args.hid_size, output_size=args.opt_size,
+             pre_len=args.pre_len, feature_type=args.feature_type, epochs=args.epochs, seq_len=args.seq_len)
