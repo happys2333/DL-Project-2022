@@ -118,7 +118,6 @@ def train(dataset_name, input_size, hidden_size, output_size, pre_len, batch, ep
         bar = tqdm.tqdm(total=train_len // batch)
         for i, data in enumerate(train_dataloader):
             source, target = data[0].to(device), data[1].to(device)
-            print(target.shape)
             pred = model(source)[:, -pre_len:, :]
 
             optimizer.zero_grad()
@@ -262,7 +261,8 @@ if __name__ == "__main__":
     parser.add_argument("--feature_type", type=str, default="S")
 
     parser.add_argument("--mode", type=str, default="train", help="train, test or pred_test")
-    parser.add_argument("--pred_idx", type=int, default=-1, help="train or test")
+    parser.add_argument("--pred_idx", type=int, default=-1,
+                        help="pred which group of data, a group is from [i:i+seq_len+pred_len], pred_idx==-1 means [-seq_len-pred_len:]")
     parser.add_argument("--save_fig", action="store_true", help="for pred_test to save graph")
     parser.add_argument("--save_data", action="store_true", help="for pred_test to save pred and true")
 
