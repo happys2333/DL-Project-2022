@@ -1,4 +1,8 @@
 import numpy as np
+import torch
+import torch.nn as nn
+from torchstat import stat
+from thop import profile, clever_format
 
 
 def check(x: np.ndarray, y: np.ndarray):
@@ -24,8 +28,14 @@ def MAE(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     return mae
 
 
+def model_stat():
+    model = nn.Conv2d(3, 32, kernel_size=3)
+    a = torch.zeros((3, 64, 64))
+    flops, params = profile(model, inputs=(a,))
+    flops, params = clever_format([flops, params], '%.3f')
+    print(flops, params)
+    print(stat(model, (3, 100, 100)))
+
+
 if __name__ == "__main__":
-    x = np.array(((1, 2, 3), (3, 2, 1)))
-    y = np.array(((1, 2, 3), (2, 2, 2)))
-    mse = MSE(x, y)
-    print(mse)
+    model_stat()
