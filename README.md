@@ -9,6 +9,8 @@
 5. influenced by sequence length and label length? is its learning skill better?
 6. 和autoformer的趋势差不多？当autoformer比informer好，wformer也好？
 7. 多变量不行
+8. 可以借鉴Yformer将encoder和decoder结合
+9. 现在只有时间点和时间段的融合（广度），没有像U-Net一样做深度上的结合
 
 ## Reference Model
 ### Informer2020
