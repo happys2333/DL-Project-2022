@@ -223,13 +223,13 @@ class Dataset_Custom(Dataset):
         '''
         df_raw.columns: ['date', ...(other features), target feature]
         '''
-        # cols = list(df_raw.columns); 
+        # cols = list(df_raw.columns)
         if self.cols:
             cols = self.cols.copy()
             cols.remove(self.target)
         else:
-            cols = list(df_raw.columns);
-            cols.remove(self.target);
+            cols = list(df_raw.columns)
+            cols.remove(self.target)
             cols.remove('date')
         df_raw = df_raw[['date'] + cols + [self.target]]
 
@@ -326,8 +326,8 @@ class Dataset_Pred(Dataset):
             cols = self.cols.copy()
             cols.remove(self.target)
         else:
-            cols = list(df_raw.columns);
-            cols.remove(self.target);
+            cols = list(df_raw.columns)
+            cols.remove(self.target)
             cols.remove('date')
         df_raw = df_raw[['date'] + cols + [self.target]]
 

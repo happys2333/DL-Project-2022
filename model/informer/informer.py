@@ -1,15 +1,13 @@
 import torch
 import torch.nn as nn
+from torchsummary import summary
 import math
 import numpy as np
 import torch.nn.functional as F
-from layers.embedding import DataEmbedding
-from layers.encoder import Encoder,EncoderLayer,ConvLayer
-from layers.decoder import Decoder,DecoderLayer
-from layers.attention import ProbAttention,FullAttention,AttentionLayer
-
-
-
+from model.informer.layers.embedding import DataEmbedding
+from model.informer.layers.encoder import Encoder, EncoderLayer, ConvLayer
+from model.informer.layers.decoder import Decoder, DecoderLayer
+from model.informer.layers.attention import ProbAttention, FullAttention, AttentionLayer
 
 
 # informer module
@@ -23,7 +21,7 @@ class Informer(nn.Module):
         self.pred_len = out_len
         self.attn = attn
         self.output_attention = output_attention
-
+        self.name = 'Informer'
         # Encoding
         self.enc_embedding = DataEmbedding(enc_in, d_model, embed, freq, dropout)
         self.dec_embedding = DataEmbedding(dec_in, d_model, embed, freq, dropout)
@@ -85,3 +83,16 @@ class Informer(nn.Module):
         else:
             return dec_out[:, -self.pred_len:, :]  # [B, L, D]
 
+
+if __name__ == '__main__':
+    device = torch.device('cuda:0')
+    enc_in = 7
+    dec_in = 7
+    c_out = 7
+    sql_len = 24 * 4 * 4
+    label_len = 96
+    out_len = 24
+    model = Informer(device=device, enc_in=enc_in, dec_in=dec_in, c_out=c_out, seq_len=sql_len,
+                              label_len=96, out_len=24).to(device)
+    summary(model,[(sql_len*label_len,out_len),(sql_len,label_len,out_len),(sql_len,label_len,out_len),(sql_len,label_len,out_len)],device=device)
+    

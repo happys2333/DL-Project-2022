@@ -6,6 +6,23 @@ self_path = os.path.split(__file__)[0]
 def path_parse(target_path):
     return os.path.join(self_path, target_path)
 
+EPOCH = 200
+
+LEARN = 0.001
+BATCH_SIZE = 32
+SEQ_LEN = 96
+LABEL_LEN = 48
+PRED_LEN= 24
+ENCODER_IN = 7
+DECODER_IN = 7
+OUT_SIZE=7
+
+OUT_LEN = 24
+
+
+PATIENCE = 10
+OUTPUT_MODEL_PATH ='../output/model'
+
 
 # data set path
 
@@ -74,3 +91,4 @@ ETTH1_PRED = {
     }
 
 }
+
