@@ -1,5 +1,17 @@
 # DL-Project-2022
 
+## Experiments
+### Wformer
+1. Speed of Converge improves?
+2. Model doesn't matter but structure matters? Change the model in Wformer
+3. Need to check the actual graph instead of MSE or MAE
+4. some cases overfitted?
+5. influenced by sequence length and label length? is its learning skill better?
+6. 和autoformer的趋势差不多？当autoformer比informer好，wformer也好？
+7. 多变量不行
+8. 可以借鉴Yformer将encoder和decoder结合
+9. 现在只有时间点和时间段的融合（广度），没有像U-Net一样做深度上的结合
+
 ## Reference Model
 ### Informer2020
 #### Train

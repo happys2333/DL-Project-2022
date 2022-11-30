@@ -2,3 +2,4 @@ model,mse,mae
 informer,1.130280,0.875960
 autoformer,0.535738,0.487452
 lstm,1.266324,0.840875
+wformer,0.992415,0.785267
