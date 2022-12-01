@@ -11,65 +11,70 @@ class Autoformer(nn.Module):
     Autoformer is the first method to achieve the series-wise connection,
     with inherent O(LlogL) complexity
     """
-    def __init__(self, configs):
+    def __init__(self, enc_in, dec_in, c_out, seq_len, label_len, out_len,
+                 factor=5, d_model=512, n_heads=8, e_layers=3, d_layers=2, d_ff=512,
+                 dropout=0.0, attn='prob', embed='fixed', freq='h', activation='gelu',
+                 output_attention=False, distil=True, mix=True,
+                 device=torch.device('cuda:0')
+                 ):
         super(Autoformer, self).__init__()
-        self.seq_len = configs.seq_len
-        self.label_len = configs.label_len
-        self.pred_len = configs.pred_len
-        self.output_attention = configs.output_attention
+        self.seq_len = seq_len
+        self.label_len = label_len
+        self.pred_len = out_len
+        self.output_attention = output_attention
 
         # Decomp
-        kernel_size = configs.moving_avg
+        kernel_size = moving_avg
         self.decomp = series_decomp(kernel_size)
 
         # Embedding
         # The series-wise connection inherently contains the sequential information.
         # Thus, we can discard the position embedding.py of transformers.
-        self.enc_embedding = DataEmbedding_wo_pos(configs.enc_in, configs.d_model, configs.embed, configs.freq,
-                                                  configs.dropout)
-        self.dec_embedding = DataEmbedding_wo_pos(configs.dec_in, configs.d_model, configs.embed, configs.freq,
-                                                  configs.dropout)
+        self.enc_embedding = DataEmbedding_wo_pos(enc_in, d_model, embed, freq,
+                                                  dropout)
+        self.dec_embedding = DataEmbedding_wo_pos(dec_in, d_model, embed, freq,
+                                                  dropout)
 
         # Encoder
         self.encoder = Encoder(
             [
                 EncoderLayer(
                     AutoCorrelationLayer(
-                        AutoCorrelation(False, configs.factor, attention_dropout=configs.dropout,
-                                        output_attention=configs.output_attention),
-                        configs.d_model, configs.n_heads),
-                    configs.d_model,
-                    configs.d_ff,
-                    moving_avg=configs.moving_avg,
-                    dropout=configs.dropout,
-                    activation=configs.activation
-                ) for l in range(configs.e_layers)
+                        AutoCorrelation(False, factor, attention_dropout=dropout,
+                                        output_attention=output_attention),
+                        d_model, n_heads),
+                    d_model,
+                    d_ff,
+                    moving_avg=moving_avg,
+                    dropout=dropout,
+                    activation=activation
+                ) for l in range(e_layers)
             ],
-            norm_layer=my_Layernorm(configs.d_model)
+            norm_layer=my_Layernorm(d_model)
         )
         # Decoder
         self.decoder = Decoder(
             [
                 DecoderLayer(
                     AutoCorrelationLayer(
-                        AutoCorrelation(True, configs.factor, attention_dropout=configs.dropout,
+                        AutoCorrelation(True, factor, attention_dropout=dropout,
                                         output_attention=False),
-                        configs.d_model, configs.n_heads),
+                        d_model, n_heads),
                     AutoCorrelationLayer(
-                        AutoCorrelation(False, configs.factor, attention_dropout=configs.dropout,
+                        AutoCorrelation(False, factor, attention_dropout=dropout,
                                         output_attention=False),
-                        configs.d_model, configs.n_heads),
-                    configs.d_model,
-                    configs.c_out,
-                    configs.d_ff,
-                    moving_avg=configs.moving_avg,
-                    dropout=configs.dropout,
-                    activation=configs.activation,
+                        d_model, n_heads),
+                    d_model,
+                    c_out,
+                    d_ff,
+                    moving_avg=moving_avg,
+                    dropout=dropout,
+                    activation=activation,
                 )
-                for l in range(configs.d_layers)
+                for l in range(d_layers)
             ],
-            norm_layer=my_Layernorm(configs.d_model),
-            projection=nn.Linear(configs.d_model, configs.c_out, bias=True)
+            norm_layer=my_Layernorm(d_model),
+            projection=nn.Linear(d_model, c_out, bias=True)
         )
 
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec,
