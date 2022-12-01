@@ -1,0 +1,26 @@
+Model Training Started ... 2022_12_01_15,08,24
+loss function is MSE
+Epoch: 1 cost time: 19 s
+Epoch: 1, Steps: 266 | Train Loss: 0.4005004 Vali Loss: 0.6832206 Test Loss: 0.5602349
+Epoch: 2 cost time: 16 s
+Epoch: 2, Steps: 266 | Train Loss: 0.2701228 Vali Loss: 0.7343916 Test Loss: 0.6174946
+Epoch: 3 cost time: 16 s
+Epoch: 3, Steps: 266 | Train Loss: 0.2088489 Vali Loss: 0.7726530 Test Loss: 0.7424230
+Epoch: 4 cost time: 16 s
+Epoch: 4, Steps: 266 | Train Loss: 0.1655993 Vali Loss: 0.7909914 Test Loss: 0.6660488
+Epoch: 5 cost time: 16 s
+Epoch: 5, Steps: 266 | Train Loss: 0.1310591 Vali Loss: 0.7969688 Test Loss: 0.6129972
+Epoch: 6 cost time: 16 s
+Epoch: 6, Steps: 266 | Train Loss: 0.1100054 Vali Loss: 0.8020101 Test Loss: 0.6748184
+Epoch: 7 cost time: 16 s
+Epoch: 7, Steps: 266 | Train Loss: 0.0980111 Vali Loss: 0.8287626 Test Loss: 0.6672690
+Epoch: 8 cost time: 16 s
+Epoch: 8, Steps: 266 | Train Loss: 0.0852502 Vali Loss: 0.8729031 Test Loss: 0.6931237
+Epoch: 9 cost time: 17 s
+Epoch: 9, Steps: 266 | Train Loss: 0.0756211 Vali Loss: 0.8169627 Test Loss: 0.6295838
+Epoch: 10 cost time: 16 s
+Epoch: 10, Steps: 266 | Train Loss: 0.0704691 Vali Loss: 0.8286370 Test Loss: 0.6441993
+Epoch: 11 cost time: 16 s
+Epoch: 11, Steps: 266 | Train Loss: 0.0635123 Vali Loss: 0.8497006 Test Loss: 0.6670200
+Early stopping at epoch: 11
+Model Training Ended ... Thu Dec  1 15:12:11 2022
