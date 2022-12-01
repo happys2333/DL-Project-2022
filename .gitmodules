@@ -1,6 +1,6 @@
-[submodule "submodule/informer2020"]
-	path = submodule/informer2020
-	url = https://github.com/zhouhaoyi/Informer2020.git
+[submodule "submodule/informer"]
+	path = submodule/informer
+	url = https://github.com/ObsisMc/Informer2020
 [submodule "submodule/autoformer"]
 	path = submodule/autoformer
-	url = https://github.com/thuml/Autoformer.git
+	url = https://github.com/ObsisMc/Autoformer
