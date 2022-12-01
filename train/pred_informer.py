@@ -3,7 +3,7 @@ import torch.nn as nn
 import model.informer.informer as informer
 from torch import optim
 from util.param import LEARN, BATCH_SIZE, PATIENCE, EPOCH, SEQ_LEN, LABEL_LEN, PRED_LEN, ENCODER_IN, DECODER_IN, \
-    OUT_LEN, OUT_SIZE, OUTPUT_MODEL_PATH
+    OUT_LEN, OUT_SIZE, OUTPUT_MODEL_PATH,FEATURES,DATASET
 from data_process.dataset_process import Process_Dataset
 from torch.utils.data import DataLoader
 from util.metrics import metric
@@ -13,13 +13,13 @@ import numpy as np
 from datetime import datetime
 
 DEVICE = torch.device('cuda:0')
-DATASET = 'ETTh1'
+
 
 
 def get_data(flag='train', dataset='ETTh1'):
     process = Process_Dataset(dataset=dataset, seq_len=SEQ_LEN,
-                              label_len=LABEL_LEN, pred_len=PRED_LEN, features='S', target='OT', cols=None, freq='h',
-                              timeenc=0, inverse=False, batch_size=BATCH_SIZE)
+                              label_len=LABEL_LEN, pred_len=PRED_LEN, features=FEATURES, target='OT', cols=None, freq='h',
+                              timeenc=0, inverse=False, batch_size=BATCH_SIZE,)
     return process.get_data(flag)
 
 
@@ -43,22 +43,22 @@ def get_optimizer(model, OPTIMIZER='Adam'):
 
 def get_model():
     model = informer.Informer(device=DEVICE, enc_in=ENCODER_IN, dec_in=DECODER_IN, c_out=OUT_SIZE, seq_len=SEQ_LEN,
-                              label_len=LABEL_LEN, out_len=OUT_LEN).to(
+                              label_len=LABEL_LEN, out_len=OUT_LEN,d_layers=1,e_layers=2,d_ff=2048).to(
         DEVICE)
     return model
 
 
 def vali(model, vali_data, vali_loader, criterion):
     model.eval()
-    loss = []
+    total_loss = []
     for i, (batch_x, batch_y, batch_x_mark, batch_y_mark) in enumerate(vali_loader):
-        pred, true = _process_one_batch(vali_data, batch_x, batch_y, batch_x_mark, batch_y_mark)
-        print()
-        one_loss = criterion(pred.detach().cpu(), true.detach().cpu())
-        loss.append(one_loss)
-    loss = np.average(loss)
+        pred, true = _process_one_batch(
+            model, batch_x, batch_y, batch_x_mark, batch_y_mark)
+        loss = criterion(pred.detach().cpu(), true.detach().cpu())
+        total_loss.append(loss)
+    total_loss = np.average(total_loss)
     model.train()
-    return loss
+    return total_loss
 
 
 def train(model):
@@ -80,6 +80,8 @@ def train(model):
     wait = 0
     min_val_loss = np.inf
     loss_func = get_loss_fun()
+    print("loss function is MSE")
+    print("loss function is MSE",file=log_file)
     opt = get_optimizer(model)
     for epoch in range(EPOCH):
         start_time = datetime.now()
@@ -112,8 +114,8 @@ def train(model):
         else:
             wait += 1
             if wait == PATIENCE:
-                print('Early stopping at epoch: %d' % epoch + 1)
-                print('Early stopping at epoch: %d' % epoch + 1, file=log_file)
+                print('Early stopping at epoch: {}'.format(epoch + 1))
+                print('Early stopping at epoch: {}'.format(epoch + 1), file=log_file)
                 break
 
     model.load_state_dict(torch.load(model_file_name))
@@ -132,7 +134,7 @@ def test(model):
 
     for i, (batch_x, batch_y, batch_x_mark, batch_y_mark) in enumerate(test_loader):
         pred, true = _process_one_batch(
-            test_data, batch_x, batch_y, batch_x_mark, batch_y_mark)
+            model, batch_x, batch_y, batch_x_mark, batch_y_mark)
         preds.append(pred.detach().cpu().numpy())
         trues.append(true.detach().cpu().numpy())
 
@@ -188,7 +190,7 @@ def _process_one_batch(model, batch_x, batch_y, batch_x_mark, batch_y_mark):
     dec_inp = torch.zeros([batch_y.shape[0], PRED_LEN, batch_y.shape[-1]]).float()
     dec_inp = torch.cat([batch_y[:, :LABEL_LEN, :], dec_inp], dim=1).float().to(DEVICE)
 
-    outputs = model(batch_x, batch_x_mark, dec_inp, batch_y_mark)[0]
+    outputs = model(batch_x, batch_x_mark, dec_inp, batch_y_mark)
     batch_y = batch_y[:, -PRED_LEN:, 0:].to(DEVICE)
 
     return outputs, batch_y
