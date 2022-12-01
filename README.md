@@ -2,6 +2,29 @@
 
 ## Experiments
 ### Wformer
+
+#### 中期答辩没答上来的问题
+
+老师的问题：降采样用了卷积，卷积需要固定向量长度，这样导致需要固定输入长度模型才能运行（obsismc's理解）；或者说test的数据要是和training的数据长度不一样就无法运行
+
+解释：
+
+没这个问题
+
+1. 卷积核大小是1和长度无关，只是为了投影到其他空间；maxpooling才是降采样的功能，所以不用怕输入长度不一样导致无法下采样
+2. 或许会问上采样的时候怎么办，上采样似乎也和向量长度有关，而且每一层的向量长度都不一样。回答：这种情况Linear层确实无法上采样，
+    因为Linear层需要固定的输入和输出长度，但是我用反卷积。反卷积对输入长度无限制，但是在我这个模型中对输出长度有要求，最下层的长度是次下层长度的一半，所以反卷积之后需要把长度变成两倍，这里参考反卷积公式
+  
+   $L_{out} = (L_{in}-1)\times stride - 2\times padding + kernel\_size + output\_padding$
+   
+   如果想要输出长度是输入的两倍且和输入长度无关，则stride必须是2，其他参数满足等式即可
+   
+3. transformer本身不受数据长度限制，这个问题和transformer自身架构无关
+
+
+
+#### 思考
+
 1. Speed of Converge improves?
 2. Model doesn't matter but structure matters? Change the model in Wformer
 3. Need to check the actual graph instead of MSE or MAE
@@ -11,6 +34,8 @@
 7. 多变量不行
 8. 可以借鉴Yformer将encoder和decoder结合
 9. 现在只有时间点和时间段的融合（广度），没有像U-Net一样做深度上的结合
+10. 改进点：不同层的注意力加权，第一层用提取段，后面提取点？
+11. 深（广）度一直到无法继续除以2？
 
 ## Reference Model
 ### Informer2020
