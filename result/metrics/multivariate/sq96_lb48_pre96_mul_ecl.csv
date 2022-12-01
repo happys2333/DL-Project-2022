@@ -1,0 +1,3 @@
+model,mse,mae
+autoformer,0.19188286,0.307368
+wformer,0.2795385,0.370594
