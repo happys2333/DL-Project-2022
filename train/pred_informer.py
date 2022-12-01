@@ -125,8 +125,9 @@ def train(model):
 
 
 def test(model):
-    test_data, test_loader = get_data(flag='test', dataset=DATASET)
 
+    test_data, test_loader = get_data(flag='test', dataset=DATASET)
+    print("Model Testing Started ...",datetime.now().strftime("%Y_%m_%d_%H,%M,%S"))
     model.eval()
 
     preds = []
@@ -146,16 +147,17 @@ def test(model):
     print('test shape:', preds.shape, trues.shape)
     save_path = OUTPUT_MODEL_PATH+"/"+ model.name
     save_path = save_path+"/"+ "test_result"
+
+
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     # result save
     mae, mse, rmse, mape, mspe = metric(preds, trues)
-    print('mse:{}, mae:{}'.format(mse, mae))
-
-    np.save(save_path + 'metrics.npy', np.array([mae, mse, rmse, mape, mspe]))
-    np.save(save_path + 'pred.npy', preds)
-    np.save(save_path + 'true.npy', trues)
-
+    print('mse:{}, mae:{}, rmse:{}, mape:{}'.format(mse, mae,rmse,mape))
+    np.save(save_path + '/metrics.npy', np.array([mae, mse, rmse, mape, mspe]))
+    np.save(save_path + '/pred.npy', preds)
+    np.save(save_path + '/true.npy', trues)
+    print("Model Testing Ended ...", datetime.now().strftime("%Y_%m_%d_%H,%M,%S"))
     return
 
 
@@ -176,7 +178,7 @@ def predict(model):
     if not os.path.exists(save_path):
         os.makedirs(save_path)
     # result save
-    np.save(save_path + 'real_prediction.npy', preds)
+    np.save(save_path + '/real_prediction.npy', preds)
 
     return
 
@@ -200,4 +202,6 @@ if __name__ == '__main__':
     informer = get_model()
     best_model = train(informer)
     test(best_model)
+
+    torch.cuda.empty_cache()
 
