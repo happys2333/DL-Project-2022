@@ -13,7 +13,7 @@ import numpy as np
 from datetime import datetime
 
 DEVICE = torch.device('cuda:0')
-
+LOG_FILE = None
 
 
 def get_data(flag='train', dataset='ETTh1'):
@@ -71,6 +71,7 @@ def train(model):
     time_now = datetime.now().strftime("%Y_%m_%d_%H,%M,%S")
     log_file_name = save_path+"/"+ model.name + "_" + time_now + "_log.txt"
     log_file = open(log_file_name, "w")
+    LOG_FILE = log_file
     model_file_name = save_path+"/"+ model.name + "_" + time_now + ".pt"
 
     train_steps = len(train_loader)
@@ -128,6 +129,7 @@ def test(model):
 
     test_data, test_loader = get_data(flag='test', dataset=DATASET)
     print("Model Testing Started ...",datetime.now().strftime("%Y_%m_%d_%H,%M,%S"))
+    print("Model Testing Started ...", datetime.now().strftime("%Y_%m_%d_%H,%M,%S"),file=LOG_FILE)
     model.eval()
 
     preds = []
@@ -154,10 +156,12 @@ def test(model):
     # result save
     mae, mse, rmse, mape, mspe = metric(preds, trues)
     print('mse:{}, mae:{}, rmse:{}, mape:{}'.format(mse, mae,rmse,mape))
+    print('mse:{}, mae:{}, rmse:{}, mape:{}'.format(mse, mae, rmse, mape),file=LOG_FILE)
     np.save(save_path + '/metrics.npy', np.array([mae, mse, rmse, mape, mspe]))
     np.save(save_path + '/pred.npy', preds)
     np.save(save_path + '/true.npy', trues)
     print("Model Testing Ended ...", datetime.now().strftime("%Y_%m_%d_%H,%M,%S"))
+    print("Model Testing Ended ...", datetime.now().strftime("%Y_%m_%d_%H,%M,%S"),file=LOG_FILE)
     return
 
 
