@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from torchsummary import summary
+from torchinfo import summary
 import math
 import numpy as np
 import torch.nn.functional as F
@@ -95,5 +95,5 @@ if __name__ == '__main__':
     model = Informer(device=device, enc_in=enc_in, dec_in=dec_in, c_out=c_out, seq_len=sql_len,
                               label_len=96, out_len=24).to(device)
 
-    summary(model,[(92,enc_in),(92,enc_in),(92,enc_in),(92,enc_in)],device=device)
+    summary(model,[(32,label_len,enc_in),(32,label_len,enc_in),(32,label_len,enc_in),(32,label_len,enc_in)],device=device)
     
