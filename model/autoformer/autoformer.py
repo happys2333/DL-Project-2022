@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
-from layers.Embed import DataEmbedding_wo_pos
-from layers.AutoCorrelation import AutoCorrelation, AutoCorrelationLayer
-from layers.Autoformer_EncDec import Encoder, Decoder, EncoderLayer, DecoderLayer, my_Layernorm, series_decomp
-
+from model.autoformer.layers.Embed import DataEmbedding_wo_pos
+from model.autoformer.layers.AutoCorrelation import AutoCorrelation, AutoCorrelationLayer
+from model.autoformer.layers.Autoformer_EncDec import Encoder, Decoder, EncoderLayer, DecoderLayer, my_Layernorm, series_decomp
+from torchinfo import summary
 
 
 class Autoformer(nn.Module):
@@ -15,9 +15,10 @@ class Autoformer(nn.Module):
                  factor=5, d_model=512, n_heads=8, e_layers=3, d_layers=2, d_ff=512,
                  dropout=0.0, attn='prob', embed='fixed', freq='h', activation='gelu',
                  output_attention=False, distil=True, mix=True,
-                 device=torch.device('cuda:0')
+                 device=torch.device('cuda:0'),moving_avg=25
                  ):
         super(Autoformer, self).__init__()
+        self.name = "Autoformer"
         self.seq_len = seq_len
         self.label_len = label_len
         self.pred_len = out_len
@@ -100,3 +101,18 @@ class Autoformer(nn.Module):
             return dec_out[:, -self.pred_len:, :], attns
         else:
             return dec_out[:, -self.pred_len:, :]  # [B, L, D]
+
+
+if __name__ == '__main__':
+    device = torch.device('cuda:0')
+    enc_in = 7
+    dec_in = 7
+    c_out = 7
+    sql_len = 96
+    label_len = 48
+    out_len = 24
+    model = Autoformer(device=device, enc_in=enc_in, dec_in=dec_in, c_out=c_out, seq_len=sql_len,
+                     label_len=label_len, out_len=out_len,moving_avg=25).to(device)
+
+    summary(model, [(32, label_len, enc_in), (32, label_len, enc_in), (32, label_len, enc_in), (32, label_len, enc_in)],
+            device=device)

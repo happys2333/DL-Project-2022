@@ -43,7 +43,8 @@ def get_optimizer(model, OPTIMIZER='Adam'):
 
 def get_model():
 
-    model = autoformer.Autoformer()
+    model = autoformer.Autoformer(device=DEVICE, enc_in=ENCODER_IN, dec_in=DECODER_IN, c_out=OUT_SIZE, seq_len=SEQ_LEN,
+                              label_len=LABEL_LEN, out_len=OUT_LEN,d_layers=1,e_layers=2,d_ff=2048)
     return model
 
 
