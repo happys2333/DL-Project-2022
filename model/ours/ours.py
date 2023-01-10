@@ -9,6 +9,7 @@ from model.ours.layers.encoder import Encoder, EncoderLayer, ConvLayer
 from model.ours.layers.decoder import Decoder, DecoderLayer
 from model.ours.layers.attention import ProbAttention, FullAttention, AttentionLayer
 
+
 class DownSampleLayer(nn.Module):
     def __init__(self, down_sample_scale, d_model):
         super(DownSampleLayer, self).__init__()
@@ -56,7 +57,6 @@ class UpSampleLayer(nn.Module):
         return x.transpose(2, 1)
 
 
-
 class Ourformer(nn.Module):
     def __init__(self, enc_in, dec_in, c_out, seq_len, label_len, out_len,
                  factor=5, d_model=512, n_heads=8, e_layers=3, d_layers=2, d_ff=512,
@@ -88,8 +88,8 @@ class Ourformer(nn.Module):
 
         # Encoding
         # obsismc: out_channel->d_model, output dim: (B, seq_len, D)
-        self.enc_embedding = DataEmbedding(enc_in, d_model, embed, freq, dropout)
-        self.dec_embedding = DataEmbedding(dec_in, d_model, embed, freq, dropout)
+        self.enc_embedding = DataEmbedding(seq_len, enc_in, d_model, device, embed, freq, dropout)
+        self.dec_embedding = DataEmbedding(label_len, dec_in, d_model, device, embed, freq, dropout)
         # Attention
         Attn = ProbAttention if attn == 'prob' else FullAttention
         # Encoder
@@ -128,6 +128,7 @@ class Ourformer(nn.Module):
             ],
             norm_layer=torch.nn.LayerNorm(d_model)
         )
+
         # self.end_conv1 = nn.Conv1d(in_channels=label_len+out_len, out_channels=out_len, kernel_size=1, bias=True)
         # self.end_conv2 = nn.Conv1d(in_channels=d_model, out_channels=c_out, kernel_size=1, bias=True)
         self.projection = nn.Linear(d_model, c_out, bias=True)
@@ -177,17 +178,16 @@ class Ourformer(nn.Module):
             return dec_out[:, -self.pred_len:, :]  # [B, L, D]
 
 
-
 if __name__ == '__main__':
-    device = torch.device('cuda:0')
+    device = torch.device('cpu')
     enc_in = 7
     dec_in = 7
     c_out = 7
-    sql_len = 24 * 4 * 4
+    seq_len = 96 * 8
     label_len = 96
     out_len = 24
-    model = Ourformer(device=device, enc_in=enc_in, dec_in=dec_in, c_out=c_out, seq_len=sql_len,
-                     label_len=96, out_len=24).to(device)
+    model = Ourformer(device=device, enc_in=enc_in, dec_in=dec_in, c_out=c_out, seq_len=seq_len,
+                      label_len=label_len, out_len=out_len).to(device)
 
-    summary(model, [(32, label_len, enc_in), (32, label_len, enc_in), (32, label_len, enc_in), (32, label_len, enc_in)],
+    summary(model, [(32, seq_len, enc_in), (32, seq_len, enc_in), (32, label_len, enc_in), (32, label_len, enc_in)],
             device=device)

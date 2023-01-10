@@ -5,33 +5,34 @@ self_path = os.path.split(__file__)[0]
 
 def path_parse(target_path):
     return os.path.join(self_path, target_path)
-DATASET='ETTh1'
+
+
+DATASET = 'ETTh1'
 
 EPOCH = 200
 
 LEARN = 0.0001
 BATCH_SIZE = 64
 SEQ_LEN = 96
-LABEL_LEN = 48
-PRED_LEN= 24
+LABEL_LEN = 72
+PRED_LEN = 24
 
 FEATURES = 'M'
 OUT_LEN = 24
 
-
 PATIENCE = 10
-OUTPUT_MODEL_PATH ='../output/model'
+OUTPUT_MODEL_PATH = '../output/model'
 
 data_parser = {
-    'ETTh1':{'data':'ETTh1.csv','T':'OT','M':[7,7,7],'S':[1,1,1],'MS':[7,7,1]},
-    'ETTh2':{'data':'ETTh2.csv','T':'OT','M':[7,7,7],'S':[1,1,1],'MS':[7,7,1]},
-    'ETTm1':{'data':'ETTm1.csv','T':'OT','M':[7,7,7],'S':[1,1,1],'MS':[7,7,1]},
-    'ETTm2':{'data':'ETTm2.csv','T':'OT','M':[7,7,7],'S':[1,1,1],'MS':[7,7,1]},
-    'WTH':{'data':'WTH.csv','T':'WetBulbCelsius','M':[12,12,12],'S':[1,1,1],'MS':[12,12,1]},
-    'ECL':{'data':'ECL.csv','T':'MT_320','M':[321,321,321],'S':[1,1,1],'MS':[321,321,1]},
-    'KDD':{'data':'wtbdata_245days.csv','T':'POWER_136','M':[137,137,137],'S':[1,1,1],'MS':[137,137,1]},
+    'ETTh1': {'data': 'ETTh1.csv', 'T': 'OT', 'M': [7, 7, 7], 'S': [1, 1, 1], 'MS': [7, 7, 1]},
+    'ETTh2': {'data': 'ETTh2.csv', 'T': 'OT', 'M': [7, 7, 7], 'S': [1, 1, 1], 'MS': [7, 7, 1]},
+    'ETTm1': {'data': 'ETTm1.csv', 'T': 'OT', 'M': [7, 7, 7], 'S': [1, 1, 1], 'MS': [7, 7, 1]},
+    'ETTm2': {'data': 'ETTm2.csv', 'T': 'OT', 'M': [7, 7, 7], 'S': [1, 1, 1], 'MS': [7, 7, 1]},
+    'WTH': {'data': 'WTH.csv', 'T': 'WetBulbCelsius', 'M': [12, 12, 12], 'S': [1, 1, 1], 'MS': [12, 12, 1]},
+    'ECL': {'data': 'ECL.csv', 'T': 'MT_320', 'M': [321, 321, 321], 'S': [1, 1, 1], 'MS': [321, 321, 1]},
+    'KDD': {'data': 'wtbdata_245days.csv', 'T': 'POWER_136', 'M': [137, 137, 137], 'S': [1, 1, 1], 'MS': [137, 137, 1]},
 }
-ENCODER_IN ,DECODER_IN ,OUT_SIZE =  data_parser[DATASET][FEATURES]
+ENCODER_IN, DECODER_IN, OUT_SIZE = data_parser[DATASET][FEATURES]
 # data set path
 
 ETT_PATH_DIR = path_parse("../dataset/ETT-small")
@@ -99,4 +100,3 @@ ETTH1_PRED = {
     }
 
 }
-

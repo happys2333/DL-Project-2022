@@ -1,0 +1,2 @@
+Model Training Started ... 2023_01_10_16,37,30
+loss function is MSE

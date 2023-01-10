@@ -102,8 +102,43 @@ class TimeFeatureEmbedding(nn.Module):
         return self.embed(x)
 
 
+class ConvEmbedding(nn.Module):
+    def __init__(self, seq_len, device, max_step=4):
+        super(ConvEmbedding, self).__init__()
+        self.cov_array = []
+        self.seq_len = seq_len
+        self.max_step = max_step
+        remain = seq_len
+        now_step = 0
+        while remain >= 0:
+            if remain <= 2 ** now_step:
+                self.cov_array.append(nn.Conv1d(in_channels=remain, out_channels=1, kernel_size=1).to(device))
+            else:
+                self.cov_array.append(nn.Conv1d(in_channels=2 ** now_step, out_channels=1, kernel_size=1).to(device))
+            remain -= 2 ** now_step
+            now_step += 1
+            if now_step > max_step:
+                now_step = 0
+
+    def forward(self, x):
+        now = 0
+        out_x = None
+        y = None
+        for conv in self.cov_array:
+            x_in = x[:, now:now + conv.in_channels, :]
+            now += conv.in_channels
+            y = conv(x_in)
+            if out_x is None:
+                out_x = y
+            else:
+                out_x = torch.cat((out_x, y), dim=1)
+        if out_x.shape[1] % 2 != 0:
+            out_x = torch.cat((out_x, y), dim=1)
+        return out_x
+
+
 class DataEmbedding(nn.Module):
-    def __init__(self, c_in, d_model, embed_type='fixed', freq='h', dropout=0.1):
+    def __init__(self, seq_len, c_in, d_model, device='cpu', embed_type='fixed', freq='h', dropout=0.1):
         super(DataEmbedding, self).__init__()
 
         self.value_embedding = TokenEmbedding(c_in=c_in, d_model=d_model)
@@ -112,9 +147,14 @@ class DataEmbedding(nn.Module):
                                                     freq=freq) if embed_type != 'timeF' else TimeFeatureEmbedding(
             d_model=d_model, embed_type=embed_type, freq=freq)
         self.dropout = nn.Dropout(p=dropout)
+        self.conv_emb = ConvEmbedding(seq_len, device=device)
+        self.mark_emb = ConvEmbedding(seq_len, device=device)
 
     def forward(self, x, x_mark):
-        x = self.value_embedding(x) + self.temporal_embedding(x_mark) + self.position_embedding(x)
+        x = self.conv_emb(x)
+        x_temporal = self.temporal_embedding(x_mark)
+        x_temporal = self.mark_emb(x_temporal)
+        x = self.value_embedding(x) + x_temporal + self.position_embedding(x)
         return self.dropout(x)
 
 
