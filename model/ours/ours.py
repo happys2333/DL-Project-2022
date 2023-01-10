@@ -72,17 +72,19 @@ class Ourformer(nn.Module):
         # U-net part
         # Important: can only handle even
         # down sample step
-        self.down_sample_n = 2  # depth
-        self.down_sample_scale = 2
+        self.depth = 2  # has depth+1 layers
+        self.scale = 2
+        self.interval = self.scale ** self.depth
         self.downSamples = nn.ModuleList(
-            [DownSampleLayer(down_sample_scale=self.down_sample_scale, d_model=d_model) for _ in
-             range(self.down_sample_n)]
+            [DownSampleLayer(down_sample_scale=self.scale, d_model=d_model) for _ in
+             range(self.depth)]
         )
         self.downSamples.append(nn.Identity())
+
         # up sample step: refer to Yformer's method
         self.upSamples = nn.ModuleList(
-            [UpSampleLayer(down_sample_scale=self.down_sample_scale, d_model=d_model) for _ in
-             range(self.down_sample_n)])
+            [UpSampleLayer(down_sample_scale=self.scale, d_model=d_model) for _ in
+             range(self.depth)])
         self.upSamples.insert(0, nn.Identity())
         self.finalNorm = nn.LayerNorm(d_model)
 
@@ -133,42 +135,55 @@ class Ourformer(nn.Module):
         # self.end_conv2 = nn.Conv1d(in_channels=d_model, out_channels=c_out, kernel_size=1, bias=True)
         self.projection = nn.Linear(d_model, c_out, bias=True)
 
+    def alignment(self, x):
+        """
+
+        :param x: (B,L,D)
+        :return:
+        """
+        x = x.transpose(1, 2)
+        L = x.shape[2]
+
+        # padding
+        restructure_len = L // self.interval * self.interval
+        padding_len = 0
+        if restructure_len < L:
+            padding_len = restructure_len + self.interval - L
+        x = F.pad(x, (0, padding_len), mode="replicate")
+        return x.transpose(1, 2), padding_len
+
     def forward(self, x_enc, x_mark_enc, x_dec, x_mark_dec,
                 enc_self_mask=None, dec_self_mask=None, dec_enc_mask=None):
-        # encoding
+        # encoding embedding
         enc_out = self.enc_embedding(x_enc, x_mark_enc)
-        enc_down_sampled = enc_out
-        enc_outs = []
+        enc_down_sampled, padding_len = self.alignment(enc_out)
         attns = None
-        for i in range(self.down_sample_n + 1):
+
+        # decoding embedding
+        dec_out = self.dec_embedding(x_dec, x_mark_dec)
+        dec_down_sampled, _ = self.alignment(dec_out)
+        dec_outs = []
+
+        # down sampling step
+        for i in range(self.depth + 1):
             # get encoding attention
             enc_out_tmp, _ = self.encoder(enc_down_sampled, attn_mask=enc_self_mask)
-            enc_outs.append(enc_out_tmp)
+
+            # cross attention
+            dec_out_tmp = self.decoder(dec_down_sampled, enc_out_tmp, x_mask=dec_self_mask,
+                                       cross_mask=dec_enc_mask)  # maybe always cross enc_out is better?
+            dec_outs.append(dec_out_tmp)
 
             # get down sampled embedding
             enc_down_sampled = self.downSamples[i](enc_down_sampled)
-
-        # decoding
-        # down sampling step
-        dec_down_sampled = dec_out = self.dec_embedding(x_dec, x_mark_dec)
-        dec_outs = []
-        for i in range(self.down_sample_n + 1):
-            # cross attention
-            dec_out_tmp = self.decoder(dec_down_sampled, enc_out, x_mask=dec_self_mask, cross_mask=dec_enc_mask)
-            if dec_out_tmp.shape[1] % 2 != 0:
-                dec_out_tmp = torch.cat((dec_out_tmp,torch.zeros(dec_out_tmp.shape[0],1,dec_out_tmp.shape[2])),dim=1)
-            dec_outs.append(dec_out_tmp)
-
-            # down sampling
             dec_down_sampled = self.downSamples[i](dec_down_sampled)
 
         # up sampling step
-
-        for i in range(self.down_sample_n, 0, -1):
+        for i in range(self.depth, 0, -1):
             dec_up_sampled = self.upSamples[i](dec_outs[i])
             dec_outs[i - 1] += dec_up_sampled
 
-        dec_out = dec_outs[0]
+        dec_out = dec_outs[0][:, :-padding_len, :]  # get rid of the padding part
         dec_out = self.finalNorm(dec_out)
         dec_out = self.projection(dec_out)
 
