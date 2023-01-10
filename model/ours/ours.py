@@ -155,6 +155,8 @@ class Ourformer(nn.Module):
         for i in range(self.down_sample_n + 1):
             # cross attention
             dec_out_tmp = self.decoder(dec_down_sampled, enc_out, x_mask=dec_self_mask, cross_mask=dec_enc_mask)
+            if dec_out_tmp.shape[1] % 2 != 0:
+                dec_out_tmp = torch.cat((dec_out_tmp,torch.zeros(dec_out_tmp.shape[0],1,dec_out_tmp.shape[2])),dim=1)
             dec_outs.append(dec_out_tmp)
 
             # down sampling
@@ -184,7 +186,7 @@ if __name__ == '__main__':
     dec_in = 7
     c_out = 7
     seq_len = 96 * 8
-    label_len = 96
+    label_len = 96 * 8
     out_len = 24
     model = Ourformer(device=device, enc_in=enc_in, dec_in=dec_in, c_out=c_out, seq_len=seq_len,
                       label_len=label_len, out_len=out_len).to(device)

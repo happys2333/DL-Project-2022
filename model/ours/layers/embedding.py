@@ -110,7 +110,7 @@ class ConvEmbedding(nn.Module):
         self.max_step = max_step
         remain = seq_len
         now_step = 0
-        while remain >= 0:
+        while remain > 0:
             if remain <= 2 ** now_step:
                 self.cov_array.append(nn.Conv1d(in_channels=remain, out_channels=1, kernel_size=1).to(device))
             else:
