@@ -184,7 +184,7 @@ class Ourformer(nn.Module):
             dec_up_sampled = self.upSamples[i](dec_outs[i])
             dec_outs[i - 1] += dec_up_sampled
 
-        dec_out = dec_outs[0][:, :-padding_len, :]  # get rid of the padding part
+        dec_out = dec_outs[0][:, :(-padding_len if padding_len > 0 else None), :]  # get rid of the padding part
         dec_out = self.finalNorm(dec_out)
         dec_out = self.projection(dec_out)
         dec_out = self.transConv(dec_out)
@@ -204,7 +204,7 @@ if __name__ == '__main__':
     c_out = 7
     seq_len = 96 * 8
     label_len = 96 * 8
-    out_len = 24
+    out_len = 200
     model = Ourformer(device=device, enc_in=enc_in, dec_in=dec_in, c_out=c_out, seq_len=seq_len,
                       label_len=label_len, out_len=out_len).to(device)
 
