@@ -1,0 +1,5 @@
+model,mse,mae
+autoformer,0.41049987,0.47100934
+informer,0.3025869,0.38997700
+wautoformer,0.3588743,0.439685314
+winformer,,
