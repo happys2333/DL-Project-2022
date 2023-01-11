@@ -71,7 +71,8 @@ def train(model):
     time_now = datetime.now().strftime("%Y_%m_%d_%H,%M,%S")
     log_file_name = save_path+"/"+ model.name + "_" + time_now + "_log.txt"
     log_file = open(log_file_name, "w")
-    LOG_FILE = log_file
+    global LOG_FILE
+    LOG_FILE= log_file
     model_file_name = save_path+"/"+ model.name + "_" + time_now + ".pt"
 
     train_steps = len(train_loader)
