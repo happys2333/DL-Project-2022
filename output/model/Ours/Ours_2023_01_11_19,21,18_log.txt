@@ -1,0 +1,4 @@
+Model Training Started ... 2023_01_11_19,21,18
+loss function is MSE
+Epoch: 1 cost time: 15 s
+Epoch: 1, Steps: 131 | Train Loss: 0.4472107 Vali Loss: 0.5246269 Test Loss: 0.4593375

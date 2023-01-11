@@ -4,7 +4,7 @@ from torchinfo import summary
 import math
 import numpy as np
 import torch.nn.functional as F
-from model.ours.layers.embedding import DataEmbedding
+from model.ours.layers.embedding import DataEmbedding, TransData
 from model.ours.layers.encoder import Encoder, EncoderLayer, ConvLayer
 from model.ours.layers.decoder import Decoder, DecoderLayer
 from model.ours.layers.attention import ProbAttention, FullAttention, AttentionLayer
@@ -62,7 +62,7 @@ class Ourformer(nn.Module):
                  factor=5, d_model=512, n_heads=8, e_layers=3, d_layers=2, d_ff=512,
                  dropout=0.0, attn='prob', embed='fixed', freq='h', activation='gelu',
                  output_attention=False, distil=True, mix=True,
-                 device=torch.device('cuda:0')):
+                 device=torch.device('cuda:0'), max_step=4):
         super(Ourformer, self).__init__()
         self.name = "Ours"
         self.pred_len = out_len
@@ -90,8 +90,8 @@ class Ourformer(nn.Module):
 
         # Encoding
         # obsismc: out_channel->d_model, output dim: (B, seq_len, D)
-        self.enc_embedding = DataEmbedding(seq_len, enc_in, d_model, device, embed, freq, dropout)
-        self.dec_embedding = DataEmbedding(label_len, dec_in, d_model, device, embed, freq, dropout)
+        self.enc_embedding = DataEmbedding(seq_len, enc_in, d_model, device, embed, freq, dropout, max_step)
+        self.dec_embedding = DataEmbedding(label_len+out_len, dec_in, d_model, device, embed, freq, dropout, max_step)
         # Attention
         Attn = ProbAttention if attn == 'prob' else FullAttention
         # Encoder
@@ -134,6 +134,7 @@ class Ourformer(nn.Module):
         # self.end_conv1 = nn.Conv1d(in_channels=label_len+out_len, out_channels=out_len, kernel_size=1, bias=True)
         # self.end_conv2 = nn.Conv1d(in_channels=d_model, out_channels=c_out, kernel_size=1, bias=True)
         self.projection = nn.Linear(d_model, c_out, bias=True)
+        self.transConv = TransData(min(seq_len,label_len+out_len), device, max_step)
 
     def alignment(self, x):
         """
@@ -186,7 +187,8 @@ class Ourformer(nn.Module):
         dec_out = dec_outs[0][:, :-padding_len, :]  # get rid of the padding part
         dec_out = self.finalNorm(dec_out)
         dec_out = self.projection(dec_out)
-
+        dec_out = self.transConv(dec_out)
+        dec_out += x_enc[:,-dec_out.shape[1]:,:]
         # dec_out = self.end_conv1(dec_out)
         # dec_out = self.end_conv2(dec_out.transpose(2,1)).transpose(1,2)
         if self.output_attention:
@@ -206,5 +208,5 @@ if __name__ == '__main__':
     model = Ourformer(device=device, enc_in=enc_in, dec_in=dec_in, c_out=c_out, seq_len=seq_len,
                       label_len=label_len, out_len=out_len).to(device)
 
-    summary(model, [(32, seq_len, enc_in), (32, seq_len, enc_in), (32, label_len, enc_in), (32, label_len, enc_in)],
+    summary(model, [(32, seq_len, enc_in), (32, seq_len, enc_in), (32, seq_len, enc_in), (32, seq_len, enc_in)],
             device=device)
