@@ -134,3 +134,4 @@ dmypy.json
 
 # don't upload dataset
 dataset
+output
