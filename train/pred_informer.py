@@ -7,6 +7,7 @@ from util.param import LEARN, BATCH_SIZE, PATIENCE, EPOCH, SEQ_LEN, LABEL_LEN, P
 from data_process.dataset_process import Process_Dataset
 from torch.utils.data import DataLoader
 from util.metrics import metric
+from model.TILDE_Q.TILDEQLoss import TILDEQLoss
 import os
 import time
 import numpy as np
@@ -29,6 +30,8 @@ def get_loss_fun(LOSS='MSE'):
         criterion = nn.MSELoss()
     if LOSS == 'MAE':
         criterion = nn.L1Loss()
+    if LOSS == 'TLoss':
+        criterion = TILDEQLoss()
     return criterion
 
 
@@ -80,7 +83,8 @@ def train(model):
 
     wait = 0
     min_val_loss = np.inf
-    loss_func = get_loss_fun()
+    loss_func = get_loss_fun("MSE")
+    criterion_func = get_loss_fun("MSE")
     print("loss function is MSE")
     print("loss function is MSE",file=log_file)
     opt = get_optimizer(model)
@@ -102,8 +106,8 @@ def train(model):
         print("Epoch: {} cost time: {} s".format(epoch + 1, (end_time - start_time).seconds))
         print("Epoch: {} cost time: {} s".format(epoch + 1, (end_time - start_time).seconds), file=log_file)
         train_loss = np.average(train_loss)
-        vali_loss = vali(model, vali_data, vali_loader, loss_func)
-        test_loss = vali(model, test_data, test_loader, loss_func)
+        vali_loss = vali(model, vali_data, vali_loader, criterion_func)
+        test_loss = vali(model, test_data, test_loader, criterion_func)
         print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f}".format(
             epoch + 1, train_steps, train_loss, vali_loss, test_loss))
         print("Epoch: {0}, Steps: {1} | Train Loss: {2:.7f} Vali Loss: {3:.7f} Test Loss: {4:.7f}".format(
